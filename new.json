@@ -1,0 +1,58 @@
+import telegram
+from telegram.ext import Updater, MessageHandler, Filters
+import requests
+import base64
+
+TOKEN = ''6176083601:AAHWvXxwddsIJ0-O26Xjc0NWtv1Ch1-O3_Y"
+
+bot = telegram.Bot(token=TOKEN)
+
+def player_info(update, context):
+    F = '\033[2;32m'
+    Z = '\033[1;31m'
+    UID = update.message.text.strip('#')  # استخراج معرف اللاعب من الرسالة
+    rr = requests.get('https://player-info-api.vercel.app/api/v1/ff/key/new').json()
+    key = rr['message']
+    id = base64.b64decode(key.encode()).decode()
+    mahos = {
+        'uid': str(UID),
+        'server': 'sg',
+        'tempKey': str(id),
+    }
+    rea = requests.get('https://player-info-api.vercel.app/api/v1/ff/info/player', params=mahos)
+    if 'player_info' in rea.text:
+        player_info_text = f'''{F}
+        Player Information In Freefire
+        ------------------
+        Account ID: {rea.json()['player_info']['basicInfo'][0]['accountId']}
+        Battle Royale Points: {rea.json()['player_info']['basicInfo'][0]['brPoint']}
+        Creation Date: {rea.json()['player_info']['basicInfo'][0]['createdAt']}
+        Clash Squad Points: {rea.json()['player_info']['basicInfo'][0]['csPoint']}
+        Current Battle Badge: {rea.json()['player_info']['basicInfo'][0]['currentBpBadge']}
+        Experience: {rea.json()['player_info']['basicInfo'][0]['exp']}
+        Last Login: {rea.json()['player_info']['basicInfo'][0]['lastLogin']}
+        Level: {rea.json()['player_info']['basicInfo'][0]['level']}
+        Likes: {rea.json()['player_info']['basicInfo'][0]['likes']}
+        Nickname: {rea.json()['player_info']['basicInfo'][0]['nickname']}
+        Profile: {rea.json()['player_info']['basicInfo'][0]['profile']}
+        Server: {rea.json()['player_info']['basicInfo'][0]['server']}
+        '''
+
+        update.message.reply_text(player_info_text)
+
+    else:
+        update.message.reply_text(f'{Z}ERROR ID')
+
+def main():
+    updater = Updater(TOKEN, use_context=True)
+    dp = updater.dispatcher
+
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, player_info))
+
+    updater.start_polling()
+    updater.idle()
+
+if name == 'main':
+    main()
+
+Python
